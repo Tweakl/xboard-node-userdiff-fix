@@ -12,16 +12,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: '1.26.1'
+          cache: false
       - name: Fetch upstream source
-        run: |
-          curl -fsSL https://github.com/cedar2025/xboard-node/archive/refs/tags/v1.13.tar.gz -o upstream.tar.gz
-          tar -xzf upstream.tar.gz
+        run: git clone --branch v1.13 --depth 1 https://github.com/cedar2025/xboard-node.git upstream
       - name: Apply patch
-        run: patch -d xboard-node-1.13 -p1 < fix-userdiff.patch
+        run: git -C upstream apply ../fix-userdiff.patch
       - name: Run regression tests
-        working-directory: xboard-node-1.13
+        working-directory: upstream
         run: go test ./internal/kernel ./internal/kernel/xray ./internal/service
