@@ -1,0 +1,27 @@
+name: Test patch
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.1'
+      - name: Fetch upstream source
+        run: |
+          curl -fsSL https://github.com/cedar2025/xboard-node/archive/refs/tags/v1.13.tar.gz -o upstream.tar.gz
+          tar -xzf upstream.tar.gz
+      - name: Apply patch
+        run: patch -d xboard-node-1.13 -p1 < fix-userdiff.patch
+      - name: Run regression tests
+        working-directory: xboard-node-1.13
+        run: go test ./internal/kernel ./internal/kernel/xray ./internal/service
